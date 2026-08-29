@@ -657,14 +657,16 @@ const finalMesh = new THREE.Mesh(geometry, finalMaterial);
 scene.add(finalMesh);
 
 // -------------------------------------------------------------
-// 6. Memory-Conscious Priority Frame & Cutout Manager (Stage 2)
+// 6. Progressive Asynchronous Frame & Cutout Engine (Stage 2)
 // -------------------------------------------------------------
-const TOTAL_FRAMES = 285;
-const MAX_CACHE_SIZE = 35;
-const frameCache = new Map();
-const cutoutCache = new Map();
+const TOTAL_FRAMES = 300;
+const frameImages = new Array(TOTAL_FRAMES + 1);
+const cutoutImages = new Array(TOTAL_FRAMES + 1);
+
 let lastLoadedFrame = null;
 let lastLoadedCutout = null;
+let currentRenderedFrame = null;
+let currentRenderedCutout = null;
 
 function getFrameUrl(index) {
   const num = String(index).padStart(3, '0');
@@ -676,117 +678,140 @@ function getCutoutUrl(index) {
   return `/cutout_frames/ezgif-frame-${num}.jpg`;
 }
 
-function loadFrameImage(index) {
-  if (frameCache.has(index)) {
-    return frameCache.get(index);
-  }
-
-  const img = new Image();
-  img.src = getFrameUrl(index);
-  img.onload = () => {
-    img._loaded = true;
-  };
-  frameCache.set(index, img);
-  return img;
-}
-
-function loadCutoutImage(index) {
-  if (cutoutCache.has(index)) {
-    return cutoutCache.get(index);
-  }
-
-  const img = new Image();
-  img.src = getCutoutUrl(index);
-  img.onload = () => {
-    img._loaded = true;
-  };
-  cutoutCache.set(index, img);
-  return img;
-}
-
-function pruneCache(centerIndex) {
-  if (frameCache.size <= MAX_CACHE_SIZE) return;
-
-  const entries = Array.from(frameCache.keys()).sort((a, b) => {
-    return Math.abs(b - centerIndex) - Math.abs(a - centerIndex);
-  });
-
-  while (frameCache.size > MAX_CACHE_SIZE && entries.length > 0) {
-    const evictIdx = entries.shift();
-    if (evictIdx !== 1) {
-      const img = frameCache.get(evictIdx);
-      if (img) img.src = '';
-      frameCache.delete(evictIdx);
-
-      const cImg = cutoutCache.get(evictIdx);
-      if (cImg) cImg.src = '';
-      cutoutCache.delete(evictIdx);
+function loadFrame(index) {
+  if (index < 1 || index > TOTAL_FRAMES) return null;
+  if (!frameImages[index]) {
+    const img = new Image();
+    img._loaded = false;
+    img.src = getFrameUrl(index);
+    if (img.decode) {
+      img.decode().then(() => {
+        img._loaded = true;
+        if (!lastLoadedFrame) lastLoadedFrame = img;
+        if (!sequenceTexture.image) {
+          sequenceTexture.image = img;
+          sequenceTexture.needsUpdate = true;
+          currentRenderedFrame = img;
+        }
+      }).catch(() => {
+        img._loaded = true;
+      });
+    } else {
+      img.onload = () => {
+        img._loaded = true;
+      };
     }
+    frameImages[index] = img;
   }
+  return frameImages[index];
+}
+
+function loadCutout(index) {
+  if (index < 1 || index > TOTAL_FRAMES) return null;
+  if (!cutoutImages[index]) {
+    const img = new Image();
+    img._loaded = false;
+    img.src = getCutoutUrl(index);
+    if (img.decode) {
+      img.decode().then(() => {
+        img._loaded = true;
+        if (!lastLoadedCutout) lastLoadedCutout = img;
+        if (!cutoutTexture.image) {
+          cutoutTexture.image = img;
+          cutoutTexture.needsUpdate = true;
+          currentRenderedCutout = img;
+        }
+      }).catch(() => {
+        img._loaded = true;
+      });
+    } else {
+      img.onload = () => {
+        img._loaded = true;
+      };
+    }
+    cutoutImages[index] = img;
+  }
+  return cutoutImages[index];
 }
 
 function updatePreloadWindow(targetIndex, scrollDirection) {
-  const forwardAhead = scrollDirection >= 0 ? 25 : 10;
-  const backwardAhead = scrollDirection <= 0 ? 20 : 8;
-
+  const forwardAhead = scrollDirection >= 0 ? 30 : 15;
+  const backwardAhead = scrollDirection <= 0 ? 25 : 10;
   const start = Math.max(1, targetIndex - backwardAhead);
   const end = Math.min(TOTAL_FRAMES, targetIndex + forwardAhead);
 
   for (let i = start; i <= end; i++) {
-    loadFrameImage(i);
-    loadCutoutImage(i);
+    loadFrame(i);
+    loadCutout(i);
   }
-
-  pruneCache(targetIndex);
 }
 
 function getNearestAvailableFrame(targetIndex) {
-  const exact = frameCache.get(targetIndex);
-  if (exact && exact._loaded && exact.naturalWidth > 0) {
-    return exact;
+  if (frameImages[targetIndex] && frameImages[targetIndex]._loaded) {
+    return frameImages[targetIndex];
   }
 
-  for (let radius = 1; radius < 40; radius++) {
-    const left = frameCache.get(targetIndex - radius);
-    if (left && left._loaded && left.naturalWidth > 0) return left;
-    const right = frameCache.get(targetIndex + radius);
-    if (right && right._loaded && right.naturalWidth > 0) return right;
+  // Scan outward in both directions to find the closest decoded frame across the entire sequence
+  for (let r = 1; r <= TOTAL_FRAMES; r++) {
+    const left = targetIndex - r;
+    if (left >= 1 && frameImages[left] && frameImages[left]._loaded) {
+      return frameImages[left];
+    }
+    const right = targetIndex + r;
+    if (right <= TOTAL_FRAMES && frameImages[right] && frameImages[right]._loaded) {
+      return frameImages[right];
+    }
   }
 
-  return lastLoadedFrame || frameCache.get(1);
+  return frameImages[1] || lastLoadedFrame || null;
 }
 
 function getNearestAvailableCutout(targetIndex) {
-  const exact = cutoutCache.get(targetIndex);
-  if (exact && exact._loaded && exact.naturalWidth > 0) {
-    return exact;
+  if (cutoutImages[targetIndex] && cutoutImages[targetIndex]._loaded) {
+    return cutoutImages[targetIndex];
   }
 
-  for (let radius = 1; radius < 40; radius++) {
-    const left = cutoutCache.get(targetIndex - radius);
-    if (left && left._loaded && left.naturalWidth > 0) return left;
-    const right = cutoutCache.get(targetIndex + radius);
-    if (right && right._loaded && right.naturalWidth > 0) return right;
+  for (let r = 1; r <= TOTAL_FRAMES; r++) {
+    const left = targetIndex - r;
+    if (left >= 1 && cutoutImages[left] && cutoutImages[left]._loaded) {
+      return cutoutImages[left];
+    }
+    const right = targetIndex + r;
+    if (right <= TOTAL_FRAMES && cutoutImages[right] && cutoutImages[right]._loaded) {
+      return cutoutImages[right];
+    }
   }
 
-  return lastLoadedCutout || cutoutCache.get(1);
+  return cutoutImages[1] || lastLoadedCutout || null;
 }
 
-const frame1 = loadFrameImage(1);
-frame1.onload = () => {
-  frame1._loaded = true;
-  lastLoadedFrame = frame1;
-  sequenceTexture.image = frame1;
-  sequenceTexture.needsUpdate = true;
-};
+// Progressive background preloader: loads immediate start frames, then streams all 300 in chunks
+function startProgressivePreload() {
+  // 1. Immediate Tier: Start sequence frames
+  for (let i = 1; i <= 35; i++) {
+    loadFrame(i);
+    loadCutout(i);
+  }
 
-const cutout1 = loadCutoutImage(1);
-cutout1.onload = () => {
-  cutout1._loaded = true;
-  lastLoadedCutout = cutout1;
-  cutoutTexture.image = cutout1;
-  cutoutTexture.needsUpdate = true;
-};
+  // 2. Progressive Background Tier: Remaining frames in smooth non-blocking batches
+  let nextChunkStart = 36;
+  const chunkSize = 20;
+
+  function preloadNextChunk() {
+    if (nextChunkStart > TOTAL_FRAMES) return;
+    const chunkEnd = Math.min(TOTAL_FRAMES, nextChunkStart + chunkSize - 1);
+    for (let i = nextChunkStart; i <= chunkEnd; i++) {
+      loadFrame(i);
+      loadCutout(i);
+    }
+    nextChunkStart += chunkSize;
+    setTimeout(preloadNextChunk, 80);
+  }
+
+  setTimeout(preloadNextChunk, 200);
+}
+
+startProgressivePreload();
 
 // -------------------------------------------------------------
 // 7. Asset Loading & Texture Management (Stage 1)
@@ -980,6 +1005,71 @@ function updateQuoteTexture() {
   quoteLogicalHeight = ch;
 }
 
+// -------------------------------------------------------------
+// 8. Cached Layout Measurements (Zero Layout Thrashing)
+// -------------------------------------------------------------
+const secAbout = document.getElementById('section-about');
+const secProjects = document.getElementById('section-projects');
+const secSkills = document.getElementById('section-skills');
+const secContact = document.getElementById('section-contact');
+const secQuote = document.getElementById('section-quote');
+const quoteContainerEl = document.getElementById('quote-container');
+
+const sectionLayouts = {
+  about: { docTop: 0, height: 0, lastOpacity: -1, lastTY: -999, lastScale: -1 },
+  projects: { docTop: 0, height: 0, lastOpacity: -1, lastTY: -999, lastScale: -1 },
+  skills: { docTop: 0, height: 0, lastOpacity: -1, lastTY: -999, lastScale: -1 },
+  contact: { docTop: 0, height: 0, lastOpacity: -1, lastTY: -999, lastScale: -1 },
+  quote: { docTop: 0, height: 0, lastOpacity: -1, lastTY: -999, lastScale: -1 },
+  projectsHeading: { docTop: 0, docLeft: 0, width: 0, height: 0 },
+  quoteContainer: { docTop: 0, docLeft: 0, width: 0, height: 0 }
+};
+
+function measureLayouts() {
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+  if (secAbout) {
+    const currentTY = (sectionLayouts.about.lastTY !== -999) ? sectionLayouts.about.lastTY : 0;
+    sectionLayouts.about.docTop = secAbout.getBoundingClientRect().top + scrollY - currentTY;
+    sectionLayouts.about.height = secAbout.offsetHeight || secAbout.getBoundingClientRect().height;
+  }
+  if (secProjects) {
+    const currentTY = (sectionLayouts.projects.lastTY !== -999) ? sectionLayouts.projects.lastTY : 0;
+    sectionLayouts.projects.docTop = secProjects.getBoundingClientRect().top + scrollY - currentTY;
+    sectionLayouts.projects.height = secProjects.offsetHeight || secProjects.getBoundingClientRect().height;
+  }
+  if (secSkills) {
+    const currentTY = (sectionLayouts.skills.lastTY !== -999) ? sectionLayouts.skills.lastTY : 0;
+    sectionLayouts.skills.docTop = secSkills.getBoundingClientRect().top + scrollY - currentTY;
+    sectionLayouts.skills.height = secSkills.offsetHeight || secSkills.getBoundingClientRect().height;
+  }
+  if (secContact) {
+    const currentTY = (sectionLayouts.contact.lastTY !== -999) ? sectionLayouts.contact.lastTY : 0;
+    sectionLayouts.contact.docTop = secContact.getBoundingClientRect().top + scrollY - currentTY;
+    sectionLayouts.contact.height = secContact.offsetHeight || secContact.getBoundingClientRect().height;
+  }
+  if (secQuote) {
+    const currentTY = (sectionLayouts.quote.lastTY !== -999) ? sectionLayouts.quote.lastTY : 0;
+    sectionLayouts.quote.docTop = secQuote.getBoundingClientRect().top + scrollY - currentTY;
+    sectionLayouts.quote.height = secQuote.offsetHeight || secQuote.getBoundingClientRect().height;
+  }
+  if (projectsHeadingEl) {
+    const r = projectsHeadingEl.getBoundingClientRect();
+    const currentTY = (sectionLayouts.projects.lastTY !== -999) ? sectionLayouts.projects.lastTY : 0;
+    sectionLayouts.projectsHeading.docTop = r.top + scrollY - currentTY;
+    sectionLayouts.projectsHeading.docLeft = r.left;
+    sectionLayouts.projectsHeading.width = r.width;
+    sectionLayouts.projectsHeading.height = r.height;
+  }
+  if (quoteContainerEl) {
+    const r = quoteContainerEl.getBoundingClientRect();
+    const currentTY = (sectionLayouts.quote.lastTY !== -999) ? sectionLayouts.quote.lastTY : 0;
+    sectionLayouts.quoteContainer.docTop = r.top + scrollY - currentTY;
+    sectionLayouts.quoteContainer.docLeft = r.left;
+    sectionLayouts.quoteContainer.width = r.width;
+    sectionLayouts.quoteContainer.height = r.height;
+  }
+}
+
 function resize() {
   updateTextTextures();
   updateQuoteTexture();
@@ -1005,9 +1095,11 @@ function resize() {
     a2 = 1.0;
   }
   finalMaterial.uniforms.uResolution.value.set(w, h, a1, a2);
+
+  measureLayouts();
 }
 
-window.addEventListener('resize', resize);
+window.addEventListener('resize', resize, { passive: true });
 
 Promise.all([
   new Promise(res => textureLoader.load('/original.jpg', (tex) => { setupTexture(tex); res(tex); })),
@@ -1020,13 +1112,16 @@ Promise.all([
   resize();
 });
 
-// Ensure text textures are perfectly re-rendered once custom web fonts are fully loaded
+// Ensure text textures and layout coordinates are perfectly updated once custom web fonts are fully loaded
 document.fonts.ready.then(() => {
   resize();
 });
 
+// Initial layout measurement
+setTimeout(measureLayouts, 100);
+
 // -------------------------------------------------------------
-// 8. Interactive Pointer & Scroll Tracking
+// 8.5. Interactive Pointer & Scroll Tracking
 // -------------------------------------------------------------
 const mouse = new THREE.Vector2(-10, -10);
 const targetMouse = new THREE.Vector2(-10, -10);
@@ -1034,15 +1129,16 @@ const targetMouse = new THREE.Vector2(-10, -10);
 window.addEventListener('mousemove', (e) => {
   targetMouse.x = e.clientX / window.innerWidth;
   targetMouse.y = 1.0 - (e.clientY / window.innerHeight);
-});
+}, { passive: true });
 
 window.addEventListener('mouseleave', () => {
   targetMouse.set(-10, -10);
-});
+}, { passive: true });
 
 let rawScrollProgress = 0.0;
 let smoothScrollProgress = 0.0;
 let lastScrollProgress = 0.0;
+let lastHeroProgress = -1;
 
 function onScroll() {
   const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
@@ -1054,29 +1150,22 @@ function onScroll() {
 window.addEventListener('scroll', onScroll, { passive: true });
 
 // -------------------------------------------------------------
-// 8.5. Cinematic Section Transition Coordinator (Stage 2)
+// 8.6. Cinematic Section Transition Coordinator (Zero Reflow)
 // -------------------------------------------------------------
-const secAbout = document.getElementById('section-about');
-const secProjects = document.getElementById('section-projects');
-const secSkills = document.getElementById('section-skills');
-const secContact = document.getElementById('section-contact');
-const secQuote = document.getElementById('section-quote');
-const quoteContainerEl = document.getElementById('quote-container');
-
-function calcSectionPresence(el, vh, isLastSection = false) {
-  if (!el) return { opacity: 0, translateY: 0, scale: 1, presence: 0 };
-  const rect = el.getBoundingClientRect();
+function calcSectionPresenceFromDoc(docTop, height, vh, scrollY, isLastSection = false) {
+  const top = docTop - scrollY;
+  const bottom = top + height;
 
   // 1. Smooth Enter Curve (Starts at 0.95*vh, fully present at 0.25*vh)
   const enterRange = vh * 0.70;
-  const rawEnter = Math.min(Math.max((vh * 0.95 - rect.top) / enterRange, 0.0), 1.0);
+  const rawEnter = Math.min(Math.max((vh * 0.95 - top) / enterRange, 0.0), 1.0);
   const smoothEnter = 0.5 - 0.5 * Math.cos(rawEnter * Math.PI);
 
   // 2. Smooth Exit Curve (Stays 1.0 until bottom reaches 0.75*vh, fades to 0.0 at 0.05*vh)
   let smoothExit = 1.0;
   if (!isLastSection) {
     const exitRange = vh * 0.70;
-    const rawExit = Math.min(Math.max((rect.bottom - vh * 0.05) / exitRange, 0.0), 1.0);
+    const rawExit = Math.min(Math.max((bottom - vh * 0.05) / exitRange, 0.0), 1.0);
     smoothExit = 0.5 - 0.5 * Math.cos(rawExit * Math.PI);
   }
 
@@ -1096,44 +1185,63 @@ function calcSectionPresence(el, vh, isLastSection = false) {
   };
 }
 
+function applySectionStyle(el, state, layoutState) {
+  if (!el) return;
+  const opDiff = Math.abs(state.opacity - layoutState.lastOpacity);
+  const tyDiff = Math.abs(state.translateY - layoutState.lastTY);
+  const scDiff = Math.abs(state.scale - layoutState.lastScale);
+
+  if (opDiff > 0.0005 || tyDiff > 0.05 || scDiff > 0.0005) {
+    el.style.opacity = state.opacity.toFixed(3);
+    el.style.transform = `translate3d(0, ${state.translateY.toFixed(1)}px, 0) scale(${state.scale.toFixed(3)})`;
+    layoutState.lastOpacity = state.opacity;
+    layoutState.lastTY = state.translateY;
+    layoutState.lastScale = state.scale;
+
+    if (state.opacity <= 0.001) {
+      el.style.pointerEvents = 'none';
+      el.style.visibility = 'hidden';
+    } else {
+      el.style.pointerEvents = 'auto';
+      el.style.visibility = 'visible';
+    }
+  }
+}
+
 function updateSectionTransitions() {
   const vh = window.innerHeight;
   if (!vh) return;
+  const scrollY = window.scrollY || window.pageYOffset || 0;
 
-  // 1. ABOUT SECTION (Entire section as one visual composition)
+  // 1. ABOUT SECTION
   if (secAbout) {
-    const t = calcSectionPresence(secAbout, vh, false);
-    secAbout.style.opacity = t.opacity.toFixed(3);
-    secAbout.style.transform = `translate3d(0, ${t.translateY.toFixed(1)}px, 0) scale(${t.scale.toFixed(3)})`;
+    const t = calcSectionPresenceFromDoc(sectionLayouts.about.docTop, sectionLayouts.about.height, vh, scrollY, false);
+    applySectionStyle(secAbout, t, sectionLayouts.about);
   }
 
-  // 2. PROJECTS SECTION (Entire section + WebGL title in sync)
+  // 2. PROJECTS SECTION
   if (secProjects) {
-    const t = calcSectionPresence(secProjects, vh, false);
-    secProjects.style.opacity = t.opacity.toFixed(3);
-    secProjects.style.transform = `translate3d(0, ${t.translateY.toFixed(1)}px, 0) scale(${t.scale.toFixed(3)})`;
+    const t = calcSectionPresenceFromDoc(sectionLayouts.projects.docTop, sectionLayouts.projects.height, vh, scrollY, false);
+    applySectionStyle(secProjects, t, sectionLayouts.projects);
     finalMaterial.uniforms.uHasText.value = t.presence;
   }
 
-  // 3. SKILLS SECTION (Entire section as one visual composition)
+  // 3. SKILLS SECTION
   if (secSkills) {
-    const t = calcSectionPresence(secSkills, vh, false);
-    secSkills.style.opacity = t.opacity.toFixed(3);
-    secSkills.style.transform = `translate3d(0, ${t.translateY.toFixed(1)}px, 0) scale(${t.scale.toFixed(3)})`;
+    const t = calcSectionPresenceFromDoc(sectionLayouts.skills.docTop, sectionLayouts.skills.height, vh, scrollY, false);
+    applySectionStyle(secSkills, t, sectionLayouts.skills);
   }
 
-  // 4. CONTACT SECTION (Entire section as one visual composition)
+  // 4. CONTACT SECTION
   if (secContact) {
-    const t = calcSectionPresence(secContact, vh, false);
-    secContact.style.opacity = t.opacity.toFixed(3);
-    secContact.style.transform = `translate3d(0, ${t.translateY.toFixed(1)}px, 0) scale(${t.scale.toFixed(3)})`;
+    const t = calcSectionPresenceFromDoc(sectionLayouts.contact.docTop, sectionLayouts.contact.height, vh, scrollY, false);
+    applySectionStyle(secContact, t, sectionLayouts.contact);
   }
 
-  // 5. QUOTE SECTION (Entire section + WebGL Quote composition in sync)
+  // 5. QUOTE SECTION
   if (secQuote) {
-    const t = calcSectionPresence(secQuote, vh, true);
-    secQuote.style.opacity = t.opacity.toFixed(3);
-    secQuote.style.transform = `translate3d(0, ${t.translateY.toFixed(1)}px, 0) scale(${t.scale.toFixed(3)})`;
+    const t = calcSectionPresenceFromDoc(sectionLayouts.quote.docTop, sectionLayouts.quote.height, vh, scrollY, true);
+    applySectionStyle(secQuote, t, sectionLayouts.quote);
     finalMaterial.uniforms.uQuoteFade.value = t.presence;
   }
 }
@@ -1144,17 +1252,22 @@ function updateSectionTransitions() {
 function animate() {
   requestAnimationFrame(animate);
 
+  const vh = window.innerHeight;
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+
   // 1. Smooth Scroll Interpolation
   smoothScrollProgress += (rawScrollProgress - smoothScrollProgress) * 0.12;
   const scrollDelta = smoothScrollProgress - lastScrollProgress;
   lastScrollProgress = smoothScrollProgress;
 
   // 2. Hero Editorial Typography Fade on Scroll
-  if (heroEditorialEl) {
+  if (heroEditorialEl && Math.abs(smoothScrollProgress - lastHeroProgress) > 0.0002) {
     const textOpacity = Math.max(0.0, 1.0 - smoothScrollProgress * 15.0);
     const textTranslate = smoothScrollProgress * -40.0;
     heroEditorialEl.style.opacity = textOpacity.toFixed(3);
     heroEditorialEl.style.transform = `translateY(${textTranslate.toFixed(1)}px)`;
+    heroEditorialEl.style.visibility = textOpacity <= 0.001 ? 'hidden' : 'visible';
+    lastHeroProgress = smoothScrollProgress;
   }
 
   // 3. Timeline Mapping & Seamless Handoff
@@ -1177,70 +1290,79 @@ function animate() {
 
   // Update Shader Uniforms
   finalMaterial.uniforms.uTransition.value = transitionVal;
-  fluidMaterial.uniforms.uStage1Active.value = Math.max(0.0, 1.0 - transitionVal * 1.5);
+  const stage1Active = Math.max(0.0, 1.0 - transitionVal * 1.5);
+  fluidMaterial.uniforms.uStage1Active.value = stage1Active;
 
   // 4. Stage 2 Frame & Cutout Texture Update
-  if (transitionVal > 0.0 || smoothScrollProgress > 0.0) {
+  if (transitionVal > 0.0 || smoothScrollProgress > 0.0 || !currentRenderedFrame) {
     updatePreloadWindow(targetFrame, Math.sign(scrollDelta));
+    
     const activeImg = getNearestAvailableFrame(targetFrame);
-    if (activeImg && activeImg._loaded && sequenceTexture.image !== activeImg) {
+    if (activeImg && activeImg !== currentRenderedFrame) {
       sequenceTexture.image = activeImg;
       sequenceTexture.needsUpdate = true;
+      currentRenderedFrame = activeImg;
       lastLoadedFrame = activeImg;
     }
 
     const activeCutout = getNearestAvailableCutout(targetFrame);
-    if (activeCutout && activeCutout._loaded && cutoutTexture.image !== activeCutout) {
+    if (activeCutout && activeCutout !== currentRenderedCutout) {
       cutoutTexture.image = activeCutout;
       cutoutTexture.needsUpdate = true;
+      currentRenderedCutout = activeCutout;
       lastLoadedCutout = activeCutout;
     }
   }
 
-  // 4.5. Text Tracking for WebGL Rendering
+  // 4.5. Update Cinematic Section Transitions (Stage 2)
+  updateSectionTransitions();
+
+  // 4.6. Text Tracking for WebGL Rendering (Calculated from cached offsets + current translateY, 0 reflow)
   if (projectsHeadingEl && projectsHeadingEl._textLogicalWidth) {
-    const rect = projectsHeadingEl.getBoundingClientRect();
     const tw = projectsHeadingEl._textLogicalWidth;
     const th = projectsHeadingEl._textLogicalHeight;
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
+    const currentTY = (sectionLayouts.projects.lastTY !== -999) ? sectionLayouts.projects.lastTY : 0;
+    const top = sectionLayouts.projectsHeading.docTop - scrollY + currentTY;
+    const cx = sectionLayouts.projectsHeading.docLeft + sectionLayouts.projectsHeading.width / 2;
+    const cy = top + sectionLayouts.projectsHeading.height / 2;
     const glLeft = cx - tw / 2;
-    const glBottom = window.innerHeight - (cy + th / 2);
+    const glBottom = vh - (cy + th / 2);
     finalMaterial.uniforms.uTextBounds.value.set(glLeft, glBottom, tw, th);
   }
 
-  // 4.6. Final Quote Bounds Tracking for WebGL Rendering
+  // 4.7. Final Quote Bounds Tracking for WebGL Rendering (Calculated from cached offsets + current translateY, 0 reflow)
   if (quoteContainerEl) {
-    const rect = quoteContainerEl.getBoundingClientRect();
-    const tw = quoteLogicalWidth;
-    const th = quoteLogicalHeight;
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
+    const tw = quoteLogicalWidth || 1;
+    const th = quoteLogicalHeight || 1;
+    const currentTY = (sectionLayouts.quote.lastTY !== -999) ? sectionLayouts.quote.lastTY : 0;
+    const top = sectionLayouts.quoteContainer.docTop - scrollY + currentTY;
+    const cx = sectionLayouts.quoteContainer.docLeft + sectionLayouts.quoteContainer.width / 2;
+    const cy = top + sectionLayouts.quoteContainer.height / 2;
     const glLeft = cx - tw / 2;
-    const glBottom = window.innerHeight - (cy + th / 2);
+    const glBottom = vh - (cy + th / 2);
     finalMaterial.uniforms.uQuoteBounds.value.set(glLeft, glBottom, tw, th);
   }
 
-  // 4.7. Update Cinematic Section Transitions (Stage 2)
-  updateSectionTransitions();
+  // 5. Stage 1 Pointer Tracking & Fluid Simulation Pass
+  if (stage1Active > 0.001 || transitionVal < 1.0) {
+    fluidMaterial.uniforms.uPrevMouse.value.copy(mouse);
+    mouse.lerp(targetMouse, CONFIG.pointerSmoothing);
+    fluidMaterial.uniforms.uMouse.value.copy(mouse);
 
-  // 5. Smooth Pointer Tracking with Inertia
-  fluidMaterial.uniforms.uPrevMouse.value.copy(mouse);
-  mouse.lerp(targetMouse, CONFIG.pointerSmoothing);
-  fluidMaterial.uniforms.uMouse.value.copy(mouse);
+    // 6. GPU Fluid Simulation Pass (Render to rtB)
+    fluidMaterial.uniforms.tFluid.value = rtA.texture;
+    renderer.setRenderTarget(rtB);
+    renderer.render(fluidScene, camera);
 
-  // 6. GPU Fluid Simulation Pass (Render to rtB)
-  fluidMaterial.uniforms.tFluid.value = rtA.texture;
-  renderer.setRenderTarget(rtB);
-  renderer.render(fluidScene, camera);
+    // 7. Ping-Pong Buffer Swap
+    const temp = rtA;
+    rtA = rtB;
+    rtB = temp;
 
-  // 7. Ping-Pong Buffer Swap
-  const temp = rtA;
-  rtA = rtB;
-  rtB = temp;
+    finalMaterial.uniforms.tFluid.value = rtA.texture;
+  }
 
   // 8. Final Scene Render (Render to Screen)
-  finalMaterial.uniforms.tFluid.value = rtA.texture;
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
 }
