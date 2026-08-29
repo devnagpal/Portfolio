@@ -5,15 +5,17 @@
   user-select: none;
 }
 
-body, html {
+body,
+html {
   width: 100%;
   min-height: 100%;
   background-color: #030305;
   cursor: default;
   overflow-x: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Pinned Fullscreen Scene (Never unmounts or jumps) */
+/* Pinned Fullscreen WebGL Canvas */
 #canvas-container {
   position: fixed;
   top: 0;
@@ -33,26 +35,803 @@ canvas {
   cursor: default;
 }
 
-/* Scroll Track for smooth cinematic progression (350vh total travel) */
-#scroll-track {
-  width: 100%;
-  height: 400vh;
+/* -------------------------------------------------------------
+   Hero Editorial Typography Overlay (Stage 1)
+------------------------------------------------------------- */
+.hero-editorial {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 6vw;
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 38vw;
+}
+
+.hero-greeting {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.85rem, 1.1vw, 1.15rem);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 0.8rem;
+}
+
+.hero-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4.5rem, 9.5vw, 11.5rem);
+  line-height: 0.86;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: #f1f3f5;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+}
+
+.hero-name .name-line {
+  display: block;
+}
+
+.hero-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: clamp(260px, 24vw, 360px);
+  text-align: left;
+}
+
+.hero-bio {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.92rem, 1.1vw, 1.18rem);
+  font-weight: 300;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
+  color: rgba(235, 238, 242, 0.78);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* -------------------------------------------------------------
+   Scroll Flow Container
+------------------------------------------------------------- */
+.scroll-content {
   position: relative;
-  z-index: 0;
+  width: 100%;
+  z-index: 2;
   pointer-events: none;
 }
 
+.sequence-scrub-space {
+  width: 100%;
+  height: 100vh;
+}
+
+/* -------------------------------------------------------------
+   ABOUT Section (INFO Left • ABOUT Right)
+------------------------------------------------------------- */
+.section-about {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 6vw;
+  position: relative;
+  pointer-events: auto;
+}
+
+.section-about,
+.section-projects,
+.section-skills,
+.section-contact,
+.section-quote {
+  will-change: transform, opacity;
+  transform-origin: center center;
+}
+
+.about-left {
+  max-width: clamp(320px, 36vw, 540px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  text-align: left;
+}
+
+.about-lead {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.25rem, 1.75vw, 1.95rem);
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+  color: #f8fafc;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.7);
+}
+
+.about-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.95rem, 1.15vw, 1.2rem);
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(226, 232, 240, 0.72);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7);
+}
+
+.about-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.about-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(6.5rem, 16vw, 19rem);
+  line-height: 0.82;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #f1f3f5;
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* -------------------------------------------------------------
+   PROJECTS Section (Top-Middle Centered Heading • Centered Grid)
+------------------------------------------------------------- */
+.section-projects {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14vh 6vw;
+  position: relative;
+  pointer-events: auto;
+}
+
+.projects-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.projects-heading {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(6.5rem, 16vw, 18.5rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: transparent;
+  user-select: none;
+  margin: 0;
+  padding: 0;
+  /* Rendered dynamically via WebGL */
+  text-shadow: none;
+  /* Removed so it doesn't double up with WebGL */
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* STRICTLY 4 equal columns maximum */
+  gap: 2.5rem; /* Slightly tighter gap to fit 4 columns gracefully */
+  width: 100%;
+  max-width: 1700px; /* Much wider container so all 4 cards can remain large */
+}
+
+.project-card {
+  background: rgba(20, 20, 22, 0.3); /* Much more transparent to reveal portfolio */
+  border: 1px solid rgba(255, 255, 255, 0.12); /* Slightly more defined border to offset transparency */
+  border-radius: 18px;
+  padding: 3rem 2.5rem; /* Adjusted to balance inside a 4-column layout */
+  backdrop-filter: blur(12px); /* Softer blur for better visibility */
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: left;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+  user-select: text;
+  width: 100%;
+  height: 100%; /* Ensure all cards are exactly the same height */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.project-card:hover {
+  transform: translateY(-10px);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 255, 255, 0.05);
+}
+
+.project-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Scaled up gap */
+  margin-bottom: 2.5rem;
+  flex-grow: 1; /* Pushes footer down and allows description to stretch */
+}
+
+.project-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 2.4rem; /* Scaled up */
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.project-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem; /* Scaled up */
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  flex-grow: 1; /* Stretches to fill awkward empty space if no image is present */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Vertically aligns the text cleanly into the remaining void */
+}
+
+.project-image {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.project-image img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-card:hover .project-image img {
+  transform: scale(1.05);
+}
+
+.project-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  margin-top: auto;
+}
+
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem; /* Scaled up gap */
+}
+
+.project-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem; /* Scaled up */
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.6rem 1.1rem; /* Scaled up padding */
+  border-radius: 8px;
+}
+
+.project-tag.tag-more {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.project-links {
+  display: flex;
+  gap: 1rem; /* Closer gap for circular buttons */
+  align-items: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.project-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.project-link-icon svg {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-link-icon:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.project-link-icon:hover svg {
+  transform: scale(1.1);
+}
+
+/* -------------------------------------------------------------
+   Responsive Layout
+------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .hero-editorial {
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8vh 6vw;
+  }
+
+  .hero-left {
+    max-width: 80vw;
+  }
+
+  .hero-right {
+    max-width: 85vw;
+    align-self: flex-start;
+  }
+
+  .section-about {
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 3rem;
+    padding: 10vh 6vw;
+  }
+
+  .about-left {
+    max-width: 90vw;
+  }
+
+  .about-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .about-heading {
+    font-size: clamp(5rem, 20vw, 9rem);
+  }
+
+  .section-projects {
+    padding: 10vh 6vw;
+  }
+
+  .projects-heading {
+    font-size: clamp(5rem, 20vw, 9rem);
+  }
+
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr); /* Drop to 2 columns on tablets */
+  }
+}
+
+@media (max-width: 1400px) {
+  .projects-grid {
+    grid-template-columns: repeat(3, 1fr); /* Drop to 3 columns on smaller desktops */
+  }
+}
+
+@media (max-width: 650px) {
+  .projects-grid {
+    grid-template-columns: 1fr; /* Stack vertically on mobile */
+  }
+}
+
+/* -------------------------------------------------------------
+   SKILLS Section — SKILLS heading LEFT, cluster collection RIGHT
+   Heading is pinned on far-left; skill collection is right-aligned
+   on the right side of the central portrait.
+------------------------------------------------------------- */
+.section-skills {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 6vw;
+  position: relative;
+  pointer-events: auto;
+}
+
+/* LEFT column — vertical SKILLS heading */
+.skills-left {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.skills-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(6.5rem, 16vw, 19rem);
+  line-height: 0.82;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #f1f3f5;
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  user-select: none;
+}
+
+/* RIGHT column — positioned strictly on the right side of the portrait */
+.skills-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: auto;
+  max-width: clamp(320px, 30vw, 480px);
+}
+
+/* Cluster container */
+.skills-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  width: 100%;
+  align-items: flex-start;
+}
+
+/* Dynamic cluster rows matching the sketch pattern */
+.skill-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  flex-wrap: nowrap;
+}
+
+/* Row 1: 2 boxes, flush left */
+.skill-row-1 {
+  padding-left: 0;
+}
+
+/* Row 2: 2 boxes, shifted right */
+.skill-row-2 {
+  padding-left: clamp(1.8rem, 3vw, 3.2rem);
+}
+
+/* Row 3: 3 boxes, spanning wide across (protruding right) */
+.skill-row-3 {
+  padding-left: 0;
+  gap: 0.65rem;
+}
+
+/* Row 4: 2 boxes, offset */
+.skill-row-4 {
+  padding-left: clamp(1.4rem, 2.4vw, 2.6rem);
+}
+
+/* Row 5: 2 boxes, spread */
+.skill-row-5 {
+  padding-left: 0;
+  gap: clamp(1.5rem, 2.8vw, 3.2rem);
+}
+
+/* Individual skill chip */
+.skill-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65em;
+  padding: 0.72em 1.35em;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.92rem, 1.05vw, 1.15rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: default;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  transition:
+    color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.25s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Inline SVG icon */
+.skill-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+}
+
+.skill-icon-wrap svg {
+  width: 21px;
+  height: 21px;
+  display: block;
+}
+
+/* Image icons */
+.skill-chip img.skill-icon {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+  object-fit: contain;
+  display: block;
+}
+
+/* Three.js icon inversion for dark background */
+.skill-chip[data-skill="Three.js"] img.skill-icon {
+  filter: invert(1);
+}
+
+/* Hover — brighten & lift chip */
+.skill-chip:hover,
+.skill-chip.is-active {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 255, 255, 0.12);
+}
+
+/* Sibling dimming when one chip is hovered */
+.skills-field.has-hover .skill-chip:not(.is-active):not(:hover) {
+  opacity: 0.32;
+}
+
+/* -------------------------------------------------------------
+   Responsive – Skills
+------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .section-skills {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3rem;
+    padding: 10vh 6vw;
+    min-height: auto;
+  }
+
+  .skills-heading {
+    writing-mode: horizontal-tb;
+    transform: none;
+    font-size: clamp(5rem, 20vw, 9rem);
+  }
+
+  .skills-right {
+    padding-left: 0;
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+
+  .skills-field {
+    gap: 0.85rem;
+  }
+
+  .skill-row {
+    flex-wrap: wrap;
+    padding-left: 0 !important;
+    gap: 0.85rem !important;
+    justify-content: flex-start !important;
+  }
+
+  .skill-chip {
+    padding: 0.75em 1.3em;
+    font-size: 1rem;
+  }
+}
+
+/* -------------------------------------------------------------
+   CONTACT Section (Editorial Transition)
+------------------------------------------------------------- */
+.section-contact {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15vh 6vw;
+  position: relative;
+  pointer-events: auto;
+}
+
+.contact-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.contact-heading {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(6.5rem, 16vw, 18.5rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: #f1f3f5;
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
+  margin: 0;
+  user-select: none;
+}
+
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
+  gap: 2rem;
+  padding: 0 4vw;
+}
+
+.contact-link-item {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  text-decoration: none;
+  color: rgba(235, 238, 242, 0.6);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  position: relative;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s ease;
+}
+
+/* Stagger layout for organic look */
+.contact-link-item:nth-child(3n+1) {
+  margin-top: -3rem;
+}
+.contact-link-item:nth-child(3n+2) {
+  margin-top: 3rem;
+}
+.contact-link-item:nth-child(3n+3) {
+  margin-top: 0;
+}
+
+.contact-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(2rem, 4vw, 3rem);
+  height: clamp(2rem, 4vw, 3rem);
+  color: inherit;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.contact-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.contact-icon-wrap svg {
+  width: 100%;
+  height: 100%;
+}
+
+.contact-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.contact-link-item[data-contact="GitHub"] .contact-icon-img {
+  filter: invert(1);
+}
+
+.contact-link-item::after {
+  content: '';
+  position: absolute;
+  bottom: -0.2rem;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.contact-link-item:hover,
+.contact-link-item.is-hovered {
+  color: #ffffff;
+}
+
+.contact-link-item:hover::after,
+.contact-link-item.is-hovered::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.contact-link-item:hover .contact-icon,
+.contact-link-item.is-hovered .contact-icon {
+  transform: translateY(-2px) scale(1.05);
+}
+
+@media (max-width: 900px) {
+  .section-contact {
+    padding: 10vh 6vw;
+  }
+  .contact-header {
+    margin-bottom: 4rem;
+  }
+  .contact-links {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3.5rem;
+  }
+  .contact-link-item {
+    margin-top: 0 !important; /* Remove stagger on mobile */
+  }
+}
+
 /* Clean minimal scrollbar */
+
 ::-webkit-scrollbar {
   width: 5px;
 }
+
 ::-webkit-scrollbar-track {
   background: #030305;
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* -------------------------------------------------------------
+   QUOTE Section (Separate Scroll Section)
+------------------------------------------------------------- */
+.section-quote {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  pointer-events: none;
+  margin-top: 15vh; /* Natural breathing space */
+}
+
+.quote-container {
+  opacity: 0; /* Rendered entirely in WebGL, physical DOM just holds space/scroll tracking */
+  width: 100vw;
+  height: 100vh;
 }

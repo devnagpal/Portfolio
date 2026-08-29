@@ -1,18 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portfolio - Identity Experience</title>
-    <link rel="stylesheet" href="./style.css">
-  </head>
-  <body>
-    <!-- Pinned Viewport Scene (One Continuous Canvas) -->
-    <div id="canvas-container"></div>
 
-    <!-- Scroll Track defining the cinematic scrubbing timeline -->
-    <div id="scroll-track"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dev Nagpal — Portfolio</title>
+  <!-- Preconnect to speed up loading -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <!-- Import Inter with standard weights -->
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@300;400;500;600;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
 
-    <script type="module" src="./main.js"></script>
-  </body>
+<body>
+  <!-- Pinned Viewport Scene (One Continuous Canvas) -->
+  <div id="canvas-container"></div>
+
+  <!-- Editorial Typography Overlay (Stage 1) -->
+  <div id="hero-editorial" class="hero-editorial">
+    <div class="hero-left">
+      <span id="hero-greeting" class="hero-greeting"></span>
+      <h1 id="hero-name" class="hero-name"></h1>
+    </div>
+    <div class="hero-right">
+      <p id="hero-bio" class="hero-bio"></p>
+    </div>
+  </div>
+
+  <!-- Scroll Content Flow -->
+  <div id="scroll-content" class="scroll-content">
+    <!-- Sequence scrubbing space -->
+    <div class="sequence-scrub-space"></div>
+
+    <!-- ABOUT Section (INFO Left • ABOUT Right) -->
+    <section id="section-about" class="section-about">
+      <div class="about-left">
+        <p id="about-lead" class="about-lead"></p>
+        <p id="about-sub" class="about-sub"></p>
+      </div>
+      <div class="about-right">
+        <h2 id="about-heading" class="about-heading"></h2>
+      </div>
+    </section>
+
+    <!-- PROJECTS Section (Centered Heading & Centered Cards) -->
+    <section id="section-projects" class="section-projects">
+      <div class="projects-header">
+        <h2 id="projects-heading" class="projects-heading"></h2>
+      </div>
+      <div id="projects-grid" class="projects-grid"></div>
+    </section>
+
+    <!-- SKILLS Section (SKILLS left • skill collection right) -->
+    <section id="section-skills" class="section-skills">
+      <div class="skills-left">
+        <h2 class="skills-heading" id="skills-heading">SKILLS</h2>
+      </div>
+      <div class="skills-right">
+        <div class="skills-field" id="skills-field"></div>
+      </div>
+    </section>
+
+    <!-- CONTACT Section -->
+    <section id="section-contact" class="section-contact">
+      <div class="contact-header">
+        <h2 id="contact-heading" class="contact-heading"></h2>
+      </div>
+      <div id="contact-links" class="contact-links"></div>
+    </section>
+
+    <!-- QUOTE Section -->
+    <section id="section-quote" class="section-quote">
+      <div id="quote-container" class="quote-container"></div>
+    </section>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+
 </html>
