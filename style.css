@@ -58,22 +58,22 @@ canvas {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 38vw;
+  max-width: 34vw;
 }
 
 .hero-greeting {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(0.85rem, 1.1vw, 1.15rem);
+  font-size: clamp(0.72rem, 0.9vw, 0.95rem);
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.7rem;
 }
 
 .hero-name {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(4.5rem, 9.5vw, 11.5rem);
+  font-size: clamp(3.8rem, 7.8vw, 9.5rem);
   line-height: 0.86;
   letter-spacing: 0.01em;
   text-transform: uppercase;
@@ -89,13 +89,13 @@ canvas {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: clamp(260px, 24vw, 360px);
+  max-width: clamp(220px, 20vw, 290px);
   text-align: left;
 }
 
 .hero-bio {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(0.92rem, 1.1vw, 1.18rem);
+  font-size: clamp(0.78rem, 0.9vw, 0.96rem);
   font-weight: 300;
   line-height: 1.65;
   letter-spacing: -0.01em;
@@ -142,16 +142,16 @@ canvas {
 }
 
 .about-left {
-  max-width: clamp(320px, 36vw, 540px);
+  max-width: clamp(260px, 28vw, 420px);
   display: flex;
   flex-direction: column;
-  gap: 1.4rem;
+  gap: 1.1rem;
   text-align: left;
 }
 
 .about-lead {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(1.25rem, 1.75vw, 1.95rem);
+  font-size: clamp(1rem, 1.35vw, 1.55rem);
   font-weight: 400;
   line-height: 1.45;
   letter-spacing: -0.015em;
@@ -161,7 +161,7 @@ canvas {
 
 .about-sub {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(0.95rem, 1.15vw, 1.2rem);
+  font-size: clamp(0.8rem, 0.9vw, 1rem);
   font-weight: 300;
   line-height: 1.7;
   color: rgba(226, 232, 240, 0.72);
@@ -176,7 +176,7 @@ canvas {
 
 .about-heading {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(6.5rem, 16vw, 19rem);
+  font-size: clamp(5rem, 12.5vw, 14.5rem);
   line-height: 0.82;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -202,12 +202,12 @@ canvas {
 .projects-header {
   width: 100%;
   text-align: center;
-  margin-bottom: 3.5rem;
+  margin-bottom: 2.6rem;
 }
 
 .projects-heading {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(6.5rem, 16vw, 18.5rem);
+  font-size: clamp(5rem, 12.5vw, 14.5rem);
   font-weight: 900;
   line-height: 0.85;
   letter-spacing: -0.03em;
@@ -224,16 +224,16 @@ canvas {
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr); /* STRICTLY 4 equal columns maximum */
-  gap: 2.5rem; /* Slightly tighter gap to fit 4 columns gracefully */
+  gap: 1.8rem;
   width: 100%;
-  max-width: 1700px; /* Much wider container so all 4 cards can remain large */
+  max-width: 1380px;
 }
 
 .project-card {
   background: rgba(20, 20, 22, 0.3); /* Much more transparent to reveal portfolio */
   border: 1px solid rgba(255, 255, 255, 0.12); /* Slightly more defined border to offset transparency */
-  border-radius: 18px;
-  padding: 3rem 2.5rem; /* Adjusted to balance inside a 4-column layout */
+  border-radius: 14px;
+  padding: 2.2rem 1.8rem;
   backdrop-filter: blur(12px); /* Softer blur for better visibility */
   -webkit-backdrop-filter: blur(12px);
   display: flex;
@@ -256,14 +256,14 @@ canvas {
 .project-card-main {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Scaled up gap */
-  margin-bottom: 2.5rem;
+  gap: 1.1rem;
+  margin-bottom: 1.8rem;
   flex-grow: 1; /* Pushes footer down and allows description to stretch */
 }
 
 .project-title {
   font-family: 'Inter', sans-serif;
-  font-size: 2.4rem; /* Scaled up */
+  font-size: 1.75rem;
   font-weight: 700;
   color: #ffffff;
   letter-spacing: -0.02em;
@@ -273,9 +273,9 @@ canvas {
 
 .project-desc {
   font-family: 'Inter', sans-serif;
-  font-size: 1.15rem; /* Scaled up */
+  font-size: 0.92rem;
   font-weight: 300;
-  line-height: 1.6;
+  line-height: 1.55;
   color: rgba(255, 255, 255, 0.75);
   margin: 0;
   flex-grow: 1; /* Stretches to fill awkward empty space if no image is present */
@@ -286,9 +286,9 @@ canvas {
 
 .project-image {
   width: 100%;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
-  margin-top: 1rem;
+  margin-top: 0.8rem;
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(0, 0, 0, 0.2);
 }
@@ -309,26 +309,26 @@ canvas {
 .project-card-footer {
   display: flex;
   flex-direction: column;
-  gap: 1.8rem;
+  gap: 1.3rem;
   margin-top: auto;
 }
 
 .project-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.8rem; /* Scaled up gap */
+  gap: 0.6rem;
 }
 
 .project-tag {
   font-family: 'Inter', sans-serif;
-  font-size: 0.9rem; /* Scaled up */
+  font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0.02em;
   color: rgba(255, 255, 255, 0.85);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 0.6rem 1.1rem; /* Scaled up padding */
-  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
 }
 
 .project-tag.tag-more {
@@ -339,9 +339,9 @@ canvas {
 
 .project-links {
   display: flex;
-  gap: 1rem; /* Closer gap for circular buttons */
+  gap: 0.8rem;
   align-items: center;
-  padding-top: 1.5rem;
+  padding-top: 1.1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -349,8 +349,8 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -360,8 +360,8 @@ canvas {
 }
 
 .project-link-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -431,9 +431,9 @@ canvas {
   }
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1150px) {
   .projects-grid {
-    grid-template-columns: repeat(3, 1fr); /* Drop to 3 columns on smaller desktops */
+    grid-template-columns: repeat(2, 1fr); /* Drop to 2 columns on tablets/small laptops */
   }
 }
 
@@ -469,7 +469,7 @@ canvas {
 
 .skills-heading {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(6.5rem, 16vw, 19rem);
+  font-size: clamp(5rem, 12.5vw, 14.5rem);
   line-height: 0.82;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -487,14 +487,14 @@ canvas {
   justify-content: flex-end;
   align-items: center;
   width: auto;
-  max-width: clamp(320px, 30vw, 480px);
+  max-width: clamp(260px, 24vw, 380px);
 }
 
 /* Cluster container */
 .skills-field {
   display: flex;
   flex-direction: column;
-  gap: 0.95rem;
+  gap: 0.75rem;
   width: 100%;
   align-items: flex-start;
 }
@@ -503,7 +503,7 @@ canvas {
 .skill-row {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.65rem;
   width: 100%;
   flex-wrap: nowrap;
 }
@@ -515,24 +515,24 @@ canvas {
 
 /* Row 2: 2 boxes, shifted right */
 .skill-row-2 {
-  padding-left: clamp(1.8rem, 3vw, 3.2rem);
+  padding-left: clamp(1.4rem, 2.2vw, 2.4rem);
 }
 
 /* Row 3: 3 boxes, spanning wide across (protruding right) */
 .skill-row-3 {
   padding-left: 0;
-  gap: 0.65rem;
+  gap: 0.55rem;
 }
 
 /* Row 4: 2 boxes, offset */
 .skill-row-4 {
-  padding-left: clamp(1.4rem, 2.4vw, 2.6rem);
+  padding-left: clamp(1rem, 1.8vw, 2rem);
 }
 
 /* Row 5: 2 boxes, spread */
 .skill-row-5 {
   padding-left: 0;
-  gap: clamp(1.5rem, 2.8vw, 3.2rem);
+  gap: clamp(1.1rem, 2.1vw, 2.4rem);
 }
 
 /* Individual skill chip */
@@ -540,16 +540,16 @@ canvas {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.65em;
-  padding: 0.72em 1.35em;
-  border-radius: 9px;
+  gap: 0.55em;
+  padding: 0.58em 1.1em;
+  border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   color: #ffffff;
   font-family: 'Inter', sans-serif;
-  font-size: clamp(0.92rem, 1.05vw, 1.15rem);
+  font-size: clamp(0.78rem, 0.85vw, 0.95rem);
   font-weight: 500;
   letter-spacing: -0.01em;
   cursor: default;
@@ -569,21 +569,21 @@ canvas {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 21px;
-  height: 21px;
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
 }
 
 .skill-icon-wrap svg {
-  width: 21px;
-  height: 21px;
+  width: 17px;
+  height: 17px;
   display: block;
 }
 
 /* Image icons */
 .skill-chip img.skill-icon {
-  width: 21px;
-  height: 21px;
+  width: 17px;
+  height: 17px;
   flex-shrink: 0;
   object-fit: contain;
   display: block;
@@ -668,12 +668,12 @@ canvas {
 .contact-header {
   width: 100%;
   text-align: center;
-  margin-bottom: 5rem;
+  margin-bottom: 3.8rem;
 }
 
 .contact-heading {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(6.5rem, 16vw, 18.5rem);
+  font-size: clamp(5rem, 12.5vw, 14.5rem);
   font-weight: 900;
   line-height: 0.85;
   letter-spacing: -0.03em;
@@ -690,19 +690,19 @@ canvas {
   justify-content: space-evenly;
   align-items: center;
   width: 100%;
-  max-width: 1400px;
-  gap: 2rem;
+  max-width: 1100px;
+  gap: 1.5rem;
   padding: 0 4vw;
 }
 
 .contact-link-item {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
+  gap: 0.9rem;
   text-decoration: none;
   color: rgba(235, 238, 242, 0.6);
   font-family: 'Inter', sans-serif;
-  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  font-size: clamp(1.4rem, 2.6vw, 2.25rem);
   font-weight: 300;
   letter-spacing: -0.01em;
   position: relative;
@@ -711,10 +711,10 @@ canvas {
 
 /* Stagger layout for organic look */
 .contact-link-item:nth-child(3n+1) {
-  margin-top: -3rem;
+  margin-top: -2.2rem;
 }
 .contact-link-item:nth-child(3n+2) {
-  margin-top: 3rem;
+  margin-top: 2.2rem;
 }
 .contact-link-item:nth-child(3n+3) {
   margin-top: 0;
@@ -724,8 +724,8 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(2rem, 4vw, 3rem);
-  height: clamp(2rem, 4vw, 3rem);
+  width: clamp(1.6rem, 3vw, 2.3rem);
+  height: clamp(1.6rem, 3vw, 2.3rem);
   color: inherit;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
