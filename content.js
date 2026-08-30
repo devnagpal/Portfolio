@@ -25,7 +25,7 @@ export const PROJECTS_CONTENT = {
       tags: ["TypeScript", "AI", "Education", "Next.js"],
       links: [
         { icon: "github", url: "https://github.com/devnagpal/EzCA", label: "GitHub Repository" },
-        { icon: "external", url: "https://ezca-two.vercel.app", label: "Live Demo" }
+        { icon: "external", url: "https://ezca7.vercel.app", label: "Live Demo" }
       ]
     },
     {
