@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { HERO_CONTENT, ABOUT_CONTENT, PROJECTS_CONTENT, SKILLS_CONTENT, CONTACT_CONTENT, QUOTE_CONTENT } from './content.js';
+import { HERO_CONTENT, ABOUT_CONTENT, PROJECTS_CONTENT, SKILLS_CONTENT, CONTACT_CONTENT, QUOTE_CONTENT, STAGE3_CONTENT } from './content.js';
 
 // -------------------------------------------------------------
 // 1. Populate Content from content.js (Hero, About, Projects)
@@ -43,9 +43,9 @@ if (projectsHeadingEl && projectsGridEl) {
 
     const linksHtml = project.links && project.links.length > 0
       ? `<div class="project-links">${project.links.map(link => {
-          const iconSvg = ICONS[link.icon] || ICONS.external;
-          return `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="project-link-icon" aria-label="${link.label}" title="${link.label}">${iconSvg}</a>`;
-        }).join('')}</div>`
+        const iconSvg = ICONS[link.icon] || ICONS.external;
+        return `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="project-link-icon" aria-label="${link.label}" title="${link.label}">${iconSvg}</a>`;
+      }).join('')}</div>`
       : '';
 
     const imageHtml = project.image
@@ -191,7 +191,7 @@ if (contactHeadingEl && contactLinksEl && CONTACT_CONTENT) {
         iconHtml = `<img class="contact-icon-img" src="${link.icon}" alt="" aria-hidden="true" loading="lazy">`;
       }
     }
-    
+
     html += `
       <a href="${link.url}" class="contact-link-item" data-contact="${link.label}" target="_blank" rel="noopener noreferrer" style="--stagger: ${index};">
         <span class="contact-icon">${iconHtml}</span>
@@ -251,7 +251,164 @@ if (contactHeadingEl && contactLinksEl && CONTACT_CONTENT) {
   }
 }
 
+// -------------------------------------------------------------
+// 1d. Populate Stage 3 (Conversational Interface)
+// -------------------------------------------------------------
+const chatHeaderEl = document.getElementById('chat-header');
+const chatGreetingEl = document.getElementById('chat-greeting');
+const chatSubEl = document.getElementById('chat-sub');
+const chatSuggestedEl = document.getElementById('chat-suggested');
+const chatHistoryEl = document.getElementById('chat-history');
+const chatInputEl = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send');
 
+if (STAGE3_CONTENT) {
+  if (chatGreetingEl) chatGreetingEl.textContent = STAGE3_CONTENT.greeting;
+  if (chatSubEl) chatSubEl.textContent = STAGE3_CONTENT.subtext;
+  if (chatInputEl) chatInputEl.placeholder = STAGE3_CONTENT.inputPlaceholder;
+
+  if (chatSuggestedEl && STAGE3_CONTENT.suggestedQuestions) {
+    let suggestedHtml = '';
+    STAGE3_CONTENT.suggestedQuestions.forEach(q => {
+      suggestedHtml += `<button class="suggested-q">${q}</button>`;
+    });
+    chatSuggestedEl.innerHTML = suggestedHtml;
+
+    // Add basic interaction foundation (Visuals only, no LLM logic)
+    const suggestedBtns = chatSuggestedEl.querySelectorAll('.suggested-q');
+    suggestedBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const questionText = btn.textContent;
+        processUserMessage(questionText);
+      });
+    });
+  }
+
+  if (chatSendBtn && chatInputEl) {
+    chatSendBtn.addEventListener('click', () => {
+      const val = chatInputEl.value.trim();
+      if (val) {
+        processUserMessage(val);
+        chatInputEl.value = '';
+      }
+    });
+
+    chatInputEl.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const val = chatInputEl.value.trim();
+        if (val) {
+          processUserMessage(val);
+          chatInputEl.value = '';
+        }
+      }
+    });
+  }
+
+  const stage3BackBtn = document.getElementById('stage3-back');
+
+  // Initially hide the back button since we're already at the start
+  if (stage3BackBtn) {
+    stage3BackBtn.addEventListener('click', () => {
+      // Reset the conversation UI state immediately (no scrolling)
+      if (chatHeaderEl) chatHeaderEl.classList.remove('is-hidden');
+      if (chatSuggestedEl) chatSuggestedEl.classList.remove('is-hidden');
+      if (chatHistoryEl) chatHistoryEl.innerHTML = '';
+      if (chatInputEl) chatInputEl.value = '';
+      
+      // Clear conversation context
+      conversationHistory = [];
+      
+      // Hide back button again
+      stage3BackBtn.classList.remove('is-visible');
+    });
+  }
+}
+// State for conversational history
+let conversationHistory = [];
+
+// Handle real conversation logic
+async function processUserMessage(questionText) {
+  // Hide the initial intro elements
+  if (chatHeaderEl) chatHeaderEl.classList.add('is-hidden');
+  if (chatSuggestedEl) chatSuggestedEl.classList.add('is-hidden');
+
+  // Show the back button so user can reset
+  const stage3BackBtn = document.getElementById('stage3-back');
+  if (stage3BackBtn) {
+    stage3BackBtn.classList.add('is-visible');
+  }
+
+  // Create unique ID for this response so we can update it later
+  const responseId = 'msg-' + Date.now();
+
+  // Add the exchange to history with a loading state
+  const exchangeHtml = `
+    <div class="chat-exchange">
+      <div class="chat-q">${questionText}</div>
+      <div class="chat-a" id="${responseId}">
+        <span style="opacity: 0.5;">Thinking...</span>
+      </div>
+    </div>
+  `;
+
+  if (chatHistoryEl) {
+    chatHistoryEl.innerHTML += exchangeHtml;
+    // Auto-scroll to bottom of history
+    setTimeout(() => {
+      chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+    }, 50);
+  }
+
+  const responseEl = document.getElementById(responseId);
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: questionText,
+        history: conversationHistory
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error('API response was not ok');
+    }
+
+    const data = await res.json();
+
+    // Update UI with response
+    if (responseEl) {
+      responseEl.innerHTML = formatResponseText(data.response);
+    }
+
+    // Append to local history for context on next turn
+    conversationHistory.push({ role: 'user', content: questionText });
+    conversationHistory.push({ role: 'assistant', content: data.response });
+
+  } catch (error) {
+    console.error('Conversation Error:', error);
+    // Graceful, human-readable error fallback
+    if (responseEl) {
+      responseEl.innerHTML = "I'm having a little trouble connecting right now. Please try again or reach out via the contact section.";
+    }
+  }
+
+  // Final scroll adjustment after response loads
+  setTimeout(() => {
+    if (chatHistoryEl) chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+  }, 100);
+}
+
+// Helper to convert simple markdown/newlines to HTML
+function formatResponseText(text) {
+  if (!text) return "";
+  return text
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>');
+}
 
 // -------------------------------------------------------------
 // 2. Approved Final Stage 1 Baseline Configuration (LOCKED)
@@ -678,13 +835,13 @@ function getCutoutUrl(index) {
   return `/cutout_frames/ezgif-frame-${num}.jpg`;
 }
 
-function loadFrame(index) {
+function loadFrame(index, decode = false) {
   if (index < 1 || index > TOTAL_FRAMES) return null;
   if (!frameImages[index]) {
     const img = new Image();
     img._loaded = false;
     img.src = getFrameUrl(index);
-    if (img.decode) {
+    if (decode && img.decode) {
       img.decode().then(() => {
         img._loaded = true;
         if (!lastLoadedFrame) lastLoadedFrame = img;
@@ -693,26 +850,25 @@ function loadFrame(index) {
           sequenceTexture.needsUpdate = true;
           currentRenderedFrame = img;
         }
-      }).catch(() => {
-        img._loaded = true;
-      });
+      }).catch(() => { img._loaded = true; });
     } else {
-      img.onload = () => {
-        img._loaded = true;
-      };
+      img.onload = () => { img._loaded = true; };
     }
     frameImages[index] = img;
+  } else if (decode && frameImages[index]._loaded === false && frameImages[index].decode) {
+    // If it was just HTTP loaded, decode it now that it's near
+    frameImages[index].decode().catch(() => {});
   }
   return frameImages[index];
 }
 
-function loadCutout(index) {
+function loadCutout(index, decode = false) {
   if (index < 1 || index > TOTAL_FRAMES) return null;
   if (!cutoutImages[index]) {
     const img = new Image();
     img._loaded = false;
     img.src = getCutoutUrl(index);
-    if (img.decode) {
+    if (decode && img.decode) {
       img.decode().then(() => {
         img._loaded = true;
         if (!lastLoadedCutout) lastLoadedCutout = img;
@@ -721,15 +877,13 @@ function loadCutout(index) {
           cutoutTexture.needsUpdate = true;
           currentRenderedCutout = img;
         }
-      }).catch(() => {
-        img._loaded = true;
-      });
+      }).catch(() => { img._loaded = true; });
     } else {
-      img.onload = () => {
-        img._loaded = true;
-      };
+      img.onload = () => { img._loaded = true; };
     }
     cutoutImages[index] = img;
+  } else if (decode && cutoutImages[index]._loaded === false && cutoutImages[index].decode) {
+    cutoutImages[index].decode().catch(() => {});
   }
   return cutoutImages[index];
 }
@@ -741,8 +895,8 @@ function updatePreloadWindow(targetIndex, scrollDirection) {
   const end = Math.min(TOTAL_FRAMES, targetIndex + forwardAhead);
 
   for (let i = start; i <= end; i++) {
-    loadFrame(i);
-    loadCutout(i);
+    loadFrame(i, true);
+    loadCutout(i, true);
   }
 }
 
@@ -785,30 +939,31 @@ function getNearestAvailableCutout(targetIndex) {
   return cutoutImages[1] || lastLoadedCutout || null;
 }
 
-// Progressive background preloader: loads immediate start frames, then streams all 300 in chunks
+// Progressive background preloader: HTTP fetches all frames in chunks without decoding them into RAM yet
 function startProgressivePreload() {
-  // 1. Immediate Tier: Start sequence frames
-  for (let i = 1; i <= 35; i++) {
-    loadFrame(i);
-    loadCutout(i);
+  // 1. Immediate Tier: Start sequence frames (decode to guarantee fast start)
+  for (let i = 1; i <= 5; i++) {
+    loadFrame(i, true);
+    loadCutout(i, true);
   }
 
-  // 2. Progressive Background Tier: Remaining frames in smooth non-blocking batches
-  let nextChunkStart = 36;
+  // 2. Progressive Background Tier: Remaining frames just fetch via HTTP to cache (decode = false)
+  let nextChunkStart = 6;
   const chunkSize = 20;
 
   function preloadNextChunk() {
     if (nextChunkStart > TOTAL_FRAMES) return;
     const chunkEnd = Math.min(TOTAL_FRAMES, nextChunkStart + chunkSize - 1);
     for (let i = nextChunkStart; i <= chunkEnd; i++) {
-      loadFrame(i);
-      loadCutout(i);
+      loadFrame(i, false);
+      loadCutout(i, false);
     }
     nextChunkStart += chunkSize;
-    setTimeout(preloadNextChunk, 80);
+    // Space out the chunks slightly more to prioritize scrolling performance
+    setTimeout(preloadNextChunk, 150);
   }
 
-  setTimeout(preloadNextChunk, 200);
+  setTimeout(preloadNextChunk, 300);
 }
 
 startProgressivePreload();
@@ -888,7 +1043,7 @@ function updateTextTextures() {
   ctxS.strokeStyle = '#ffffff';
   ctxS.lineWidth = 10.0; // Double width because we'll erase the inner half
   ctxS.strokeText(text, cx, cy);
-  
+
   // Erase the inside of the text to remove overlapping internal font paths
   ctxS.globalCompositeOperation = 'destination-out';
   ctxS.fillStyle = '#ffffff';
@@ -995,7 +1150,7 @@ function updateQuoteTexture() {
 
   finalMaterial.uniforms.tQuoteFilled.value = textTextureQuoteFilled;
   finalMaterial.uniforms.tQuoteOverlay.value = textTextureQuoteOverlay;
-  
+
   const qc = document.getElementById('quote-container');
   if (qc) {
     qc.style.width = `${cw}px`;
@@ -1014,6 +1169,8 @@ const secSkills = document.getElementById('section-skills');
 const secContact = document.getElementById('section-contact');
 const secQuote = document.getElementById('section-quote');
 const quoteContainerEl = document.getElementById('quote-container');
+const scrollContentEl = document.getElementById('scroll-content');
+let stage2MaxScroll = 1;
 
 const sectionLayouts = {
   about: { docTop: 0, height: 0, lastOpacity: -1, lastTY: -999, lastScale: -1 },
@@ -1027,6 +1184,9 @@ const sectionLayouts = {
 
 function measureLayouts() {
   const scrollY = window.scrollY || window.pageYOffset || 0;
+  if (scrollContentEl) {
+    stage2MaxScroll = Math.max(1, scrollContentEl.offsetHeight - window.innerHeight);
+  }
   if (secAbout) {
     const currentTY = (sectionLayouts.about.lastTY !== -999) ? sectionLayouts.about.lastTY : 0;
     sectionLayouts.about.docTop = secAbout.getBoundingClientRect().top + scrollY - currentTY;
@@ -1141,9 +1301,9 @@ let lastScrollProgress = 0.0;
 let lastHeroProgress = -1;
 
 function onScroll() {
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-  if (maxScroll > 0) {
-    rawScrollProgress = Math.min(Math.max(window.scrollY / maxScroll, 0.0), 1.0);
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+  if (stage2MaxScroll > 0) {
+    rawScrollProgress = Math.min(Math.max(scrollY / stage2MaxScroll, 0.0), 1.0);
   }
 }
 
@@ -1238,9 +1398,10 @@ function updateSectionTransitions() {
     applySectionStyle(secContact, t, sectionLayouts.contact);
   }
 
-  // 5. QUOTE SECTION
+  // 5. QUOTE SECTION (Locks gracefully when Stage 3 takes over)
   if (secQuote) {
-    const t = calcSectionPresenceFromDoc(sectionLayouts.quote.docTop, sectionLayouts.quote.height, vh, scrollY, true);
+    const clampedQuoteScroll = Math.min(scrollY, stage2MaxScroll);
+    const t = calcSectionPresenceFromDoc(sectionLayouts.quote.docTop, sectionLayouts.quote.height, vh, clampedQuoteScroll, true);
     applySectionStyle(secQuote, t, sectionLayouts.quote);
     finalMaterial.uniforms.uQuoteFade.value = t.presence;
   }
@@ -1296,7 +1457,7 @@ function animate() {
   // 4. Stage 2 Frame & Cutout Texture Update
   if (transitionVal > 0.0 || smoothScrollProgress > 0.0 || !currentRenderedFrame) {
     updatePreloadWindow(targetFrame, Math.sign(scrollDelta));
-    
+
     const activeImg = getNearestAvailableFrame(targetFrame);
     if (activeImg && activeImg !== currentRenderedFrame) {
       sequenceTexture.image = activeImg;
@@ -1335,7 +1496,8 @@ function animate() {
     const tw = quoteLogicalWidth || 1;
     const th = quoteLogicalHeight || 1;
     const currentTY = (sectionLayouts.quote.lastTY !== -999) ? sectionLayouts.quote.lastTY : 0;
-    const top = sectionLayouts.quoteContainer.docTop - scrollY + currentTY;
+    const clampedQuoteScroll = Math.min(scrollY, stage2MaxScroll);
+    const top = sectionLayouts.quoteContainer.docTop - clampedQuoteScroll + currentTY;
     const cx = sectionLayouts.quoteContainer.docLeft + sectionLayouts.quoteContainer.width / 2;
     const cy = top + sectionLayouts.quoteContainer.height / 2;
     const glLeft = cx - tw / 2;
@@ -1343,8 +1505,11 @@ function animate() {
     finalMaterial.uniforms.uQuoteBounds.value.set(glLeft, glBottom, tw, th);
   }
 
+  // Determine if Stage 3 fully obscures the WebGL canvas
+  const isStage3Active = (rawScrollProgress > (stage2MaxScroll + vh * 0.5));
+
   // 5. Stage 1 Pointer Tracking & Fluid Simulation Pass
-  if (stage1Active > 0.001 || transitionVal < 1.0) {
+  if (!isStage3Active && (stage1Active > 0.001 || transitionVal < 1.0)) {
     fluidMaterial.uniforms.uPrevMouse.value.copy(mouse);
     mouse.lerp(targetMouse, CONFIG.pointerSmoothing);
     fluidMaterial.uniforms.uMouse.value.copy(mouse);
@@ -1363,8 +1528,11 @@ function animate() {
   }
 
   // 8. Final Scene Render (Render to Screen)
-  renderer.setRenderTarget(null);
-  renderer.render(scene, camera);
+  // Completely skip GPU output if Stage 3 covers the viewport (saves massive battery on mobile during chat)
+  if (!isStage3Active) {
+    renderer.setRenderTarget(null);
+    renderer.render(scene, camera);
+  }
 }
 
 animate();
