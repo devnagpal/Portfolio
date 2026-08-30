@@ -22,6 +22,7 @@ export async function generateWithGoogle(message, history, systemInstruction, co
     config: {
       systemInstruction: systemInstruction,
       temperature: config.temperature,
+      maxOutputTokens: config.maxOutputTokens
     }
   });
 

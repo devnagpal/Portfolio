@@ -371,6 +371,10 @@ async function processUserMessage(questionText) {
       })
     });
 
+    if (res.status === 429) {
+      throw new Error('RATE_LIMIT_EXCEEDED');
+    }
+
     if (!res.ok) {
       throw new Error('API response was not ok');
     }
@@ -390,7 +394,11 @@ async function processUserMessage(questionText) {
     console.error('Conversation Error:', error);
     // Graceful, human-readable error fallback
     if (responseEl) {
-      responseEl.innerHTML = "I'm having a little trouble connecting right now. Please try again or reach out via the contact section.";
+      if (error.message === 'RATE_LIMIT_EXCEEDED') {
+        responseEl.innerHTML = "You've reached the current question limit. Please come back later.";
+      } else {
+        responseEl.innerHTML = "I'm having a little trouble connecting right now. Please try again or reach out via the contact section.";
+      }
     }
   }
 
