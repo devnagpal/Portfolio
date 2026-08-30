@@ -77,6 +77,43 @@
     </section>
   </div>
 
+  <!-- STAGE 3 (Independent Scene Container) -->
+  <section id="stage-3" class="stage-3">
+    <div class="stage-3-backdrop"></div>
+    <div id="stage-3-container" class="stage-3-container">
+      
+      <button id="stage3-back" class="stage3-back" aria-label="Reset conversation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+
+      <div class="chat-wrapper">
+        <div id="chat-header" class="chat-header">
+          <h2 id="chat-greeting" class="chat-greeting"></h2>
+          <p id="chat-sub" class="chat-sub"></p>
+        </div>
+        
+        <div id="chat-suggested" class="chat-suggested"></div>
+        
+        <div id="chat-history" class="chat-history">
+          <!-- Active conversation goes here dynamically -->
+        </div>
+        
+        <div class="chat-input-wrapper">
+          <input type="text" id="chat-input" class="chat-input" autocomplete="off" />
+          <button id="chat-send" class="chat-send" aria-label="Send message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <script type="module" src="./main.js"></script>
 </body>
 

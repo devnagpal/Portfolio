@@ -213,3 +213,18 @@ export const QUOTE_CONTENT = {
     yOffsetVh: 0
   }
 };
+
+// -------------------------------------------------------------
+// STAGE 3 CONTENT (Conversational Interface)
+// -------------------------------------------------------------
+export const STAGE3_CONTENT = {
+  greeting: "YOU CAN ASK ME SOMETHING, AND I'LL ANSWER",
+  subtext: "Curious about my projects, design philosophy, background, or what I'm working on?",
+  suggestedQuestions: [
+    "What is your design philosophy?",
+    "Tell me about your background.",
+    "Are you open to new roles?",
+    "What are you learning right now?"
+  ],
+  inputPlaceholder: "Ask me anything..."
+};

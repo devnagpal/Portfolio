@@ -835,3 +835,294 @@ canvas {
   width: 100vw;
   height: 100vh;
 }
+
+/* -------------------------------------------------------------
+   STAGE 3: Independent Conversational Scene
+------------------------------------------------------------- */
+.stage-3 {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* Locked exactly to viewport */
+  margin-top: 80vh; /* Deliberate scroll hold before Stage 3 appears */
+  z-index: 10;
+  pointer-events: auto;
+  overflow: hidden; /* Prevent ANY scrolling out of Stage 3 */
+  background-color: #040406;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.95);
+}
+
+.stage-3-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Deeper, more cinematic lighting */
+  background: radial-gradient(circle at 50% -20%, rgba(35, 42, 60, 0.45) 0%, rgba(4, 4, 6, 1) 75%);
+}
+
+.stage-3-container {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* Locked exactly to viewport */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8vh 6vw 10vh 6vw; /* Carefully framed padding */
+  z-index: 2;
+}
+
+/* -------------------------------------------------------------
+   STAGE 3: Editorial Conversational Interface
+------------------------------------------------------------- */
+.chat-wrapper {
+  width: 100%;
+  height: 100%;
+  max-width: 840px; /* Elegant reading width */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.chat-header {
+  text-align: center;
+  margin-top: auto; /* Push down dynamically */
+  padding-top: 4vh; /* Ensure minimum breathable space */
+  margin-bottom: clamp(1.5rem, 4vh, 3rem);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.chat-header.is-hidden {
+  opacity: 0;
+  transform: translateY(-30px);
+  pointer-events: none;
+  position: absolute; /* Remove from flow so history takes its place */
+  left: 0;
+  right: 0;
+}
+
+.chat-greeting {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 6vw, 6rem); /* Scalable minimum to prevent overflow on small screens */
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  text-transform: uppercase;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.stage3-back {
+  position: absolute;
+  top: clamp(15px, 4vh, 40px); /* Much safer top margin for mobile status bars */
+  left: clamp(15px, 4vw, 40px); /* Safer left margin */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05); /* Make it distinctly visible as a button */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%; /* Circle shape */
+  color: #ffffff; /* Solid white for maximum contrast */
+  cursor: pointer;
+  z-index: 50; /* Ensure it stays above everything */
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0.75rem; /* Tighter padding for a circle button */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  
+  /* Initial Hidden State */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+}
+
+.stage3-back.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.stage3-back.is-visible:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(0) scale(1.05);
+}
+
+.stage3-back svg {
+  width: 20px; 
+  height: 20px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stage3-back.is-visible:hover svg {
+  transform: translateX(-3px);
+}
+
+.chat-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 300;
+  color: rgba(235, 238, 242, 0.55);
+  letter-spacing: 0.01em;
+}
+
+.chat-suggested {
+  display: flex;
+  flex-wrap: wrap; /* Elegant wrap instead of column */
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: clamp(1.5rem, 4vh, 3rem);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0; /* Never collapse */
+}
+
+.chat-suggested.is-hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+  position: absolute; /* Remove from flow */
+  left: 0;
+  right: 0;
+  top: 35vh; /* Keep it approximately where it was */
+}
+
+.suggested-q {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px; /* Sleeker, less bubbly */
+  padding: 1rem 1.8rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 300;
+  color: rgba(235, 238, 242, 0.75);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: -0.01em;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.suggested-q:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2), 0 0 20px rgba(255, 255, 255, 0.03);
+}
+
+.chat-history {
+  flex: 1; /* Take up all available space */
+  min-height: 0; /* CRITICAL: Allows flex child to shrink properly */
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  overflow-y: auto; /* Internal scrolling if it gets long */
+  padding-right: 10px; /* Slight padding for scrollbar */
+  scrollbar-width: none; /* Hide scrollbar Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar IE/Edge */
+}
+
+.chat-history::-webkit-scrollbar {
+  display: none; /* Hide scrollbar Chrome/Safari */
+}
+
+.chat-exchange {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-q {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1.6rem, 2.8vw, 2.2rem); /* Larger, editorial question */
+  font-weight: 400;
+  color: #ffffff;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.chat-a {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1rem, 1.5vw, 1.15rem); /* Beautiful reading size */
+  font-weight: 300;
+  color: rgba(235, 238, 242, 0.75);
+  line-height: 1.8;
+  letter-spacing: -0.01em;
+  padding-left: 1.5rem; /* Ground the answer with an indent */
+  border-left: 1px solid rgba(255, 255, 255, 0.15); /* Subtle anchor line */
+}
+
+.chat-input-wrapper {
+  position: relative;
+  width: 100%;
+  margin-top: auto; /* Push down firmly */
+  padding-top: 1rem;
+  flex-shrink: 0; /* Prevent the input area from squishing */
+}
+
+.chat-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 1.5rem 4rem 1.5rem 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem; /* Larger, more deliberate input */
+  font-weight: 300;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.4s ease;
+  letter-spacing: -0.01em;
+}
+
+.chat-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.chat-input:focus {
+  border-bottom-color: rgba(255, 255, 255, 0.6);
+}
+
+.chat-send {
+  position: absolute;
+  right: 0;
+  bottom: 1.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-send svg {
+  width: 24px;
+  height: 24px;
+}
+
+.chat-send:hover {
+  color: #ffffff;
+  transform: translateX(4px) scale(1.05);
+}
