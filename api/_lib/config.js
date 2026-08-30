@@ -1,12 +1,12 @@
 export const AI_CONFIG = {
-  // Configurable AI Provider (e.g., 'google', 'openai', 'anthropic')
-  provider: process.env.AI_PROVIDER || 'google',
+  // Configurable AI Provider (e.g., 'google', 'openai', 'anthropic', 'openrouter')
+  provider: process.env.AI_PROVIDER || 'openrouter',
   
-  // Configurable Model
-  model: process.env.AI_MODEL || 'gemini-2.5-flash',
+  // Configurable Model (Defaulting to a 100% free model on OpenRouter)
+  model: process.env.AI_MODEL || 'meta-llama/llama-3.1-8b-instruct:free',
   
-  // API Key (Agnostic variable names preferred, falls back to GEMINI specific for backwards compat)
-  apiKey: process.env.AI_API_KEY || process.env.GEMINI_API_KEY || '',
+  // API Key (Agnostic variable names preferred)
+  apiKey: process.env.AI_API_KEY || process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY || '',
   
   // Model generation parameters
   temperature: parseFloat(process.env.AI_TEMPERATURE || '0.7'),

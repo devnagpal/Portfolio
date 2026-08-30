@@ -1,6 +1,7 @@
 import { AI_CONFIG } from './config.js';
 import { buildSystemPrompt } from './promptBuilder.js';
 import { generateWithGoogle } from './providers/google.js';
+import { generateWithOpenRouter } from './providers/openrouter.js';
 
 /**
  * Core AI Service Abstraction Layer
@@ -15,6 +16,9 @@ export async function generateResponse(userMessage, history) {
   const systemInstruction = buildSystemPrompt();
 
   switch (AI_CONFIG.provider) {
+    case 'openrouter':
+      return await generateWithOpenRouter(userMessage, history, systemInstruction, AI_CONFIG);
+      
     case 'google':
       return await generateWithGoogle(userMessage, history, systemInstruction, AI_CONFIG);
       
